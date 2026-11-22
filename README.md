@@ -1,6 +1,6 @@
 # 🅿️ Guest Parking QR System (Smart QR Parking)
 
-An anonymous, security-focused parking management system for guests (Guest/Student) built on Python (FastAPI/Flask). The system lets users scan a static QR code at the entry gate to receive a digital ticket, park their vehicle, and verify with a secret Passcode at the exit gate — **with no account registration or mobile app installation required**.
+An anonymous, security-focused parking management system for guests (Guest/Student) built on Python (FastAPI). The system lets users scan a static QR code at the entry gate to receive a digital ticket, park their vehicle, and verify with a secret Passcode at the exit gate — **with no account registration or mobile app installation required**.
 
 ---
 
@@ -23,7 +23,7 @@ An anonymous, security-focused parking management system for guests (Guest/Stude
 * **Fraud Prevention:** As the system, I want to automatically block reuse or forgery of tickets and limit failed passcode attempts so that fraud is prevented without human intervention.
 * **Data Cleanup:** As the system, I want expired tickets to be automatically cleaned up so that parking slots are freed for new users.
 
-> **Design Note:** The system runs on a **nologin** model — there is no user account and no admin dashboard. "Management" happens **automatically based on each parking session's lifecycle**, not tracked per user.
+> **Design Note:** The system runs on a **nologin** model — guests do not need a user account. "Management" happens **automatically based on each parking session's lifecycle**, not tracked per user; staff can look up sessions through a separate admin panel.
 
 ---
 
@@ -192,35 +192,30 @@ erDiagram
 ## 📁 Project Structure
 
 ```text
-guest-parking-qr/
+smart-qr-parking/
 ├── alembic/                  # Database migration scripts
-├── alembic.ini              # Alembic configuration
+├── alembic.ini
+├── data/                     # Slot data
+├── scripts/                  # Helper scripts
 ├── tests/                    # Unit & integration tests
 │   ├── conftest.py
 │   ├── test_api.py
 │   └── test_services.py
 ├── app/                      # Main application source code
-│   ├── __init__.py
-│   ├── api/
-│   │   └── v1/
-│   │       └── tickets.py    # API router for /entry, /ticket, /verify
-│   ├── core/
-│   │   ├── config.py         # Pydantic settings & SECRET_KEY
-│   │   └── security.py       # HMAC hash & passcode generation
-│   ├── crud/
-│   │   └── parking.py        # Database operations (create session, update slot)
-│   ├── db/
-│   │   ├── base.py
-│   │   ├── database.py       # DB session management
-│   │   └── models.py         # SQLAlchemy ORM models (ParkingSlot, ParkingSession)
-│   ├── schemas/
-│   │   └── ticket.py         # Pydantic schemas for the API
-│   ├── services/
-│   │   ├── ticket_service.py # Core business logic
-│   │   └── cleanup_job.py    # Background job for expired tickets
-│   └── main.py               # FastAPI application entrypoint
+│   ├── main.py               # FastAPI application entrypoint
+│   ├── web.py                # Web pages (ticket, verify)
+│   ├── admin_panel.py        # Admin panel for staff lookup
+│   ├── api/v1/tickets.py     # API router for /entry, /ticket, /verify
+│   ├── core/config.py        # Settings & SECRET_KEY
+│   ├── crud/parking.py       # Database operations
+│   ├── db/                   # Database session, base, init, models
+│   ├── schemas/ticket.py     # Pydantic schemas
+│   ├── services/ticket_service.py  # Business logic (incl. HMAC hash)
+│   └── templates/            # HTML pages
+├── Dockerfile
+├── requirements.txt
+├── seed_data.py
 ├── .env.example
-├── .gitignore
 ├── pyproject.toml
 └── README.md
 ```
@@ -230,8 +225,9 @@ guest-parking-qr/
 ## 🚀 Run Locally
 
 ```bash
-git clone https://github.com/bvkjdbdbbd/hello.git
-cd hello
+git clone https://github.com/bvkjdbdbbd/smart-qr-parking.git
+cd smart-qr-parking
+python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
